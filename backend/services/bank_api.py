@@ -27,25 +27,14 @@ def fetch_bank_data():
     
     # 3. Eldik Bank
     eldik_bal, eldik_count, eldik_status, eldik_accs = fetch_eldik_accounts()
-    
-    # 4. MBank (Simulated for now, as no script was provided)
-    mbank_bal = 20250000.0
-    mbank_count = 3
-    mbank_status = "Подключено"
-    mbank_accs = [
-        {"id": str(uuid.uuid4()), "bank_name": "Мбанк", "account_number": "MB-123456", "currency": "KGS", "balance": 10000000.0, "last_updated": datetime.now()},
-        {"id": str(uuid.uuid4()), "bank_name": "Мбанк", "account_number": "MB-654321", "currency": "KGS", "balance": 5250000.0, "last_updated": datetime.now()},
-        {"id": str(uuid.uuid4()), "bank_name": "Мбанк", "account_number": "MB-999999", "currency": "KGS", "balance": 5000000.0, "last_updated": datetime.now()},
-    ]
 
     banks_summary = [
         {"name": "Айыл Банк", "logo_name": "aiyl", "status": aiyl_status, "account_count": aiyl_count, "balance": aiyl_bal},
         {"name": "Оптима Банк", "logo_name": "optima", "status": opt_status, "account_count": opt_count, "balance": opt_bal},
-        {"name": "Мбанк", "logo_name": "mbank", "status": mbank_status, "account_count": mbank_count, "balance": mbank_bal},
         {"name": "Элдик Банк", "logo_name": "eldik", "status": eldik_status, "account_count": eldik_count, "balance": eldik_bal}
     ]
     
-    all_accounts = aiyl_accs + opt_accs + eldik_accs + mbank_accs
+    all_accounts = aiyl_accs + opt_accs + eldik_accs
     
     return banks_summary, all_accounts
 
