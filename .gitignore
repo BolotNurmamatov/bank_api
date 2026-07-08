@@ -5,3 +5,7 @@ node_modules
 __pycache__
 *.env.local
 .env
+backend/venv
+backend/__pycache__
+frontend/node_modules
+frontend/.next
