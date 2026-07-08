@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import contextlib
 from database import engine, Base
-from routers import dashboard
+from routers import dashboard, auth
 from scheduler import start_scheduler
 from services.bank_api import update_banks_in_db
 
@@ -22,14 +22,15 @@ app = FastAPI(title="Treasury Dashboard API", lifespan=lifespan)
 # Allow CORS for the frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 app.include_router(dashboard.router)
+app.include_router(auth.router)
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="[IP_ADDRESS]", port=8000, reload=True)

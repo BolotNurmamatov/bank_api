@@ -1,14 +1,17 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header
 from sqlalchemy.orm import Session
 from database import get_db
-from models import Bank
+from models import Bank, ActivityLog
 from schemas import DashboardResponse, DashboardStats, BankResponse
 from services.bank_api import update_banks_in_db
+from routers.auth import verify_internal_secret
+import uuid
+from datetime import datetime
 
 router = APIRouter(prefix="/api/v1/dashboard", tags=["Dashboard"])
 
-@router.get("", response_model=DashboardResponse)
-def get_dashboard_data(db: Session = Depends(get_db)):
+@router.get("", response_model=DashboardResponse, dependencies=[Depends(verify_internal_secret)])
+def get_dashboard_data(user_email: str, db: Session = Depends(get_db)):
     all_records = db.query(Bank).order_by(Bank.last_updated.desc()).all()
     
     # Get latest record per bank
@@ -31,10 +34,23 @@ def get_dashboard_data(db: Session = Depends(get_db)):
         last_updated=last_updated
     )
 
+    # Log the action
+    if user_email:
+        log = ActivityLog(id=str(uuid.uuid4()), user_email=user_email, action="Viewed Dashboard")
+        db.add(log)
+        db.commit()
+
     return DashboardResponse(stats=stats, banks=banks)
 
-@router.post("/refresh", response_model=DashboardResponse)
-def refresh_dashboard_data(db: Session = Depends(get_db)):
+@router.post("/refresh", response_model=DashboardResponse, dependencies=[Depends(verify_internal_secret)])
+def refresh_dashboard_data(user_email: str, db: Session = Depends(get_db)):
     # Trigger manual refresh
     update_banks_in_db()
-    return get_dashboard_data(db)
+    
+    # Log the action
+    if user_email:
+        log = ActivityLog(id=str(uuid.uuid4()), user_email=user_email, action="Refreshed Dashboard Data")
+        db.add(log)
+        db.commit()
+        
+    return get_dashboard_data(user_email=user_email, db=db)

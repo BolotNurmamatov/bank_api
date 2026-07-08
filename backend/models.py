@@ -16,3 +16,27 @@ class Bank(Base):
     __table_args__ = (
         engines.MergeTree(order_by=['name', 'last_updated']),
     )
+
+class User(Base):
+    __tablename__ = "users"
+
+    email = Column(String, primary_key=True)
+    name = Column(String)
+    last_login = Column(DateTime, default=datetime.now)
+    created_at = Column(DateTime, default=datetime.now)
+
+    __table_args__ = (
+        engines.MergeTree(order_by=['email']),
+    )
+
+class ActivityLog(Base):
+    __tablename__ = "activity_logs"
+
+    id = Column(String, primary_key=True)  # UUID string
+    user_email = Column(String)
+    action = Column(String)
+    timestamp = Column(DateTime, default=datetime.now)
+
+    __table_args__ = (
+        engines.MergeTree(order_by=['timestamp', 'id']),
+    )

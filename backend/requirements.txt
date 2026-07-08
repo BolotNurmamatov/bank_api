@@ -1,8 +1,10 @@
 fastapi
 uvicorn
 sqlalchemy
-psycopg2-binary
+clickhouse-driver
+clickhouse-sqlalchemy
 requests
 apscheduler
 python-dotenv
 pydantic
+python-jose[cryptography]
