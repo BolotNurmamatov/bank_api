@@ -8,7 +8,7 @@ load_dotenv()
 
 # We will run the backend from the api_bank folder or inside backend folder
 # Defaulting to the postgres service from docker-compose
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "clickhouse://default:root@localhost:8888/default")
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "clickhouse://default:root@10.45.51.1:8888/default")
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
