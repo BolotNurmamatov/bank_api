@@ -1,102 +1,85 @@
 import requests
 import urllib3
 import os
+import uuid
 from sqlalchemy.orm import Session
 from datetime import datetime
-from models import Bank
+from models import Bank, BankAccount
 from database import SessionLocal
+
+from services.eldik import fetch_eldik_accounts
+from services.optima import fetch_optima_accounts
+from services.aiyl import fetch_aiyl_accounts
 
 # Suppress insecure request warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def fetch_bank_data():
     """
-    Fetches the latest bank data from the real API for the main bank,
-    and returns a list of dictionaries simulating other banks as well.
+    Fetches bank data and individual accounts from all modular bank services.
+    Returns (banks_summary, all_accounts)
     """
-    auth_url = os.getenv("ABANK_URL_AUTH")
-    data_url = os.getenv("DATA_URL")
-    username = os.getenv("ABANK_USERNAME")
-    password = os.getenv("ABANK_PASSWORD")
-
-    main_bank_balance = 0.0
-    main_bank_status = "Ошибка"
-
-    if auth_url and username and password and data_url:
-        credentials = {"username": username, "password": password}
-        try:
-            # 1. Auth
-            auth_response = requests.post(auth_url, json=credentials, verify=False, timeout=10)
-            auth_response.raise_for_status()
-            auth_data = auth_response.json()
-            access_token = auth_data.get("data", {}).get("access_token")
-
-            if access_token:
-                # 2. Get Data
-                headers = {
-                    "Authorization": f"Bearer {access_token}",
-                    "Content-Type": "application/json"
-                }
-                data_response = requests.get(data_url, headers=headers, verify=False, timeout=10)
-                data_response.raise_for_status()
-                response_json = data_response.json()
-                
-                # API response: {'statusCode': 0, 'message': 'Успешно!', 'state': 'SUCCESS', 'data': 50000.0}
-                if response_json.get("state") == "SUCCESS":
-                    main_bank_balance = float(response_json.get("data", 0.0))
-                    main_bank_status = "Подключено"
-        except Exception as e:
-            print(f"Error fetching real bank data: {e}")
-
-    # For the UI dashboard, we simulate the other banks if they aren't real yet
-    banks_data = [
-        {
-            "name": "Айыл Банк",
-            "logo_name": "aiyl",
-            "status": main_bank_status,
-            "account_count": 1,
-            "balance": main_bank_balance
-        },
-        {
-            "name": "Оптима Банк",
-            "logo_name": "optima",
-            "status": "Подключено",
-            "account_count": 4,
-            "balance": 45250000.0
-        },
-        {
-            "name": "Мбанк",
-            "logo_name": "mbank",
-            "status": "Подключено",
-            "account_count": 3,
-            "balance": 20250000.0
-        },
-        {
-            "name": "Элдик Банк",
-            "logo_name": "eldik",
-            "status": "Подключено",
-            "account_count": 2,
-            "balance": 27150000.0
-        }
+    # 1. Aiyl Bank
+    aiyl_bal, aiyl_count, aiyl_status, aiyl_accs = fetch_aiyl_accounts()
+    
+    # 2. Optima Bank
+    opt_bal, opt_count, opt_status, opt_accs = fetch_optima_accounts()
+    
+    # 3. Eldik Bank
+    eldik_bal, eldik_count, eldik_status, eldik_accs = fetch_eldik_accounts()
+    
+    # 4. MBank (Simulated for now, as no script was provided)
+    mbank_bal = 20250000.0
+    mbank_count = 3
+    mbank_status = "Подключено"
+    mbank_accs = [
+        {"id": str(uuid.uuid4()), "bank_name": "Мбанк", "account_number": "MB-123456", "currency": "KGS", "balance": 10000000.0, "last_updated": datetime.now()},
+        {"id": str(uuid.uuid4()), "bank_name": "Мбанк", "account_number": "MB-654321", "currency": "KGS", "balance": 5250000.0, "last_updated": datetime.now()},
+        {"id": str(uuid.uuid4()), "bank_name": "Мбанк", "account_number": "MB-999999", "currency": "KGS", "balance": 5000000.0, "last_updated": datetime.now()},
     ]
-    return banks_data
+
+    banks_summary = [
+        {"name": "Айыл Банк", "logo_name": "aiyl", "status": aiyl_status, "account_count": aiyl_count, "balance": aiyl_bal},
+        {"name": "Оптима Банк", "logo_name": "optima", "status": opt_status, "account_count": opt_count, "balance": opt_bal},
+        {"name": "Мбанк", "logo_name": "mbank", "status": mbank_status, "account_count": mbank_count, "balance": mbank_bal},
+        {"name": "Элдик Банк", "logo_name": "eldik", "status": eldik_status, "account_count": eldik_count, "balance": eldik_bal}
+    ]
+    
+    all_accounts = aiyl_accs + opt_accs + eldik_accs + mbank_accs
+    
+    return banks_summary, all_accounts
 
 def update_banks_in_db():
     print(f"[{datetime.now()}] Updating bank data...")
-    banks_data = fetch_bank_data()
+    banks_summary, all_accounts = fetch_bank_data()
     db: Session = SessionLocal()
     
     try:
-        for bank_data in banks_data:
+        now = datetime.now()
+        # 1. Update Banks
+        for bank_data in banks_summary:
             db_bank = Bank(
                 name=bank_data["name"],
                 logo_name=bank_data["logo_name"],
                 status=bank_data["status"],
                 account_count=bank_data["account_count"],
                 balance=bank_data["balance"],
-                last_updated=datetime.now()
+                last_updated=now
             )
             db.add(db_bank)
+            
+        # 2. Update Bank Accounts
+        for acc_data in all_accounts:
+            db_acc = BankAccount(
+                id=acc_data["id"],
+                bank_name=acc_data["bank_name"],
+                account_number=acc_data["account_number"],
+                currency=acc_data["currency"],
+                balance=acc_data["balance"],
+                last_updated=acc_data["last_updated"]
+            )
+            db.add(db_acc)
+            
         db.commit()
         print("Bank data updated successfully.")
     except Exception as e:
@@ -104,3 +87,4 @@ def update_banks_in_db():
         db.rollback()
     finally:
         db.close()
+

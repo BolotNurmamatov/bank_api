@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, Header
 from sqlalchemy.orm import Session
 from database import get_db
-from models import Bank, ActivityLog
-from schemas import DashboardResponse, DashboardStats, BankResponse
+from models import Bank, ActivityLog, BankAccount
+from schemas import DashboardResponse, DashboardStats, BankResponse, BankAccountBase
 from services.bank_api import update_banks_in_db
 from routers.auth import verify_internal_secret
 import uuid
@@ -22,6 +22,16 @@ def get_dashboard_data(user_email: str, db: Session = Depends(get_db)):
             
     banks = list(latest_banks.values())
     
+    # Get latest accounts per bank_name + account_number
+    all_accounts_records = db.query(BankAccount).order_by(BankAccount.last_updated.desc()).all()
+    latest_accounts = {}
+    for acc in all_accounts_records:
+        key = f"{acc.bank_name}_{acc.account_number}"
+        if key not in latest_accounts:
+            latest_accounts[key] = acc
+            
+    accounts = list(latest_accounts.values())
+    
     total_balance = sum([b.balance for b in banks])
     total_banks_connected = len([b for b in banks if b.status == "Подключено"])
     total_accounts = sum([b.account_count for b in banks])
@@ -40,7 +50,7 @@ def get_dashboard_data(user_email: str, db: Session = Depends(get_db)):
         db.add(log)
         db.commit()
 
-    return DashboardResponse(stats=stats, banks=banks)
+    return DashboardResponse(stats=stats, banks=banks, accounts=accounts)
 
 @router.post("/refresh", response_model=DashboardResponse, dependencies=[Depends(verify_internal_secret)])
 def refresh_dashboard_data(user_email: str, db: Session = Depends(get_db)):

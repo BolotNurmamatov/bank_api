@@ -18,6 +18,17 @@ class BankResponse(BankBase):
     class Config:
         from_attributes = True
 
+class BankAccountBase(BaseModel):
+    id: str
+    bank_name: str
+    account_number: str
+    currency: str
+    balance: float
+    last_updated: datetime
+
+    class Config:
+        from_attributes = True
+
 class DashboardStats(BaseModel):
     total_balance: float
     total_banks_connected: int
@@ -27,3 +38,4 @@ class DashboardStats(BaseModel):
 class DashboardResponse(BaseModel):
     stats: DashboardStats
     banks: List[BankResponse]
+    accounts: List[BankAccountBase] = []

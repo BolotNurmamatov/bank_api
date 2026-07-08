@@ -29,6 +29,20 @@ class User(Base):
         engines.MergeTree(order_by=['email']),
     )
 
+class BankAccount(Base):
+    __tablename__ = "bank_accounts"
+
+    id = Column(String, primary_key=True) # unique UUID
+    bank_name = Column(String)
+    account_number = Column(String)
+    currency = Column(String)
+    balance = Column(Float)
+    last_updated = Column(DateTime, default=datetime.now)
+
+    __table_args__ = (
+        engines.MergeTree(order_by=['bank_name', 'account_number', 'id']),
+    )
+
 class ActivityLog(Base):
     __tablename__ = "activity_logs"
 
