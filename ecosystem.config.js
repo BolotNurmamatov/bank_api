@@ -2,10 +2,9 @@ module.exports = {
   apps: [
     {
       name: "api_bank_backend",
-      script: "uvicorn",
-      args: "main:app --host 127.0.0.1 --port 8000",
+      script: "run.py",
       cwd: "./backend",
-      interpreter: "python", // Uses the global python, or specify a virtualenv path like "./venv/Scripts/python.exe"
+      interpreter: "python", // Uses the active python environment (like your .venv)
       env: {
         "DATABASE_URL": "clickhouse://default:root@127.0.0.1:8888/default", // Update this to match your ClickHouse production string
         "INTERNAL_API_SECRET": "your-secure-internal-secret-here"
