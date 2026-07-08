@@ -28,10 +28,10 @@ const IconGoogle = () => (
 );
 
 const BANK_LOGOS: Record<string, string> = {
-  aiyl: "https://upload.wikimedia.org/wikipedia/commons/9/97/Aiyl_Bank_logo.svg",
+  aiyl: "https://abank.kg/img/logo_new.svg",
   optima: "https://upload.wikimedia.org/wikipedia/commons/c/c0/Logotip_OPTIMA-BANK.jpg",
   mbank: "https://mbank.kg/_next/static/media/logo.6cee92d7.svg",
-  eldik: "https://upload.wikimedia.org/wikipedia/commons/1/19/RSK_Bank_Logo.png"
+  eldik: "https://eldik.kg/_next/image?url=https%3A%2F%2Feldik.kg%2Fmedia%2Fmain%2F%25D0%259B%25D0%25BE%25D0%25B3%25D0%25BE%25D1%2582%25D0%25B8%25D0%25BF_%25D0%25BE%25D1%2581%25D0%25BD%25D0%25BE%25D0%25B2%25D0%25BD%25D0%25BE%25D0%25B9_%25D0%25BA%25D1%258B%25D1%2580%25D0%25B3%25D1%258B%25D0%25B7%25D1%2587%25D0%25B0.png&w=768&q=75"
 };
 
 interface Bank {
