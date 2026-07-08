@@ -54,11 +54,11 @@ def fetch_bank_data():
             "name": "Айыл Банк",
             "logo_name": "aiyl",
             "status": main_bank_status,
-            "account_count": 3,
+            "account_count": 1,
             "balance": main_bank_balance
         },
         {
-            "name": "OptimaBank",
+            "name": "Оптима Банк",
             "logo_name": "optima",
             "status": "Подключено",
             "account_count": 4,
