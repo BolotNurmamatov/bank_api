@@ -1,0 +1,197 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { Sidebar } from "@/components/Sidebar";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
+
+interface HistoryDataPoint {
+  time_bucket: string;
+  balances: Record<string, number>;
+}
+
+interface HistoryResponse {
+  data: HistoryDataPoint[];
+}
+
+const BANK_COLORS: Record<string, string> = {
+  "Элдик Банк": "#0284c7",  // Blue
+  "Оптима Банк": "#dc2626", // Red
+  "Мбанк": "#16a34a",       // Green
+  "Айыл Банк": "#d97706",   // Orange
+};
+
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('ru-RU', {
+    style: 'currency',
+    currency: 'KGS',
+    maximumFractionDigits: 0
+  }).format(value);
+};
+
+export default function ReportsPage() {
+  const { status } = useSession();
+  const [data, setData] = useState<HistoryDataPoint[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState<"hour" | "today" | "week" | "month">("today");
+
+  const fetchData = async (range: string) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/reports?timeRange=${range}`);
+      if (res.ok) {
+        const json: HistoryResponse = await res.json();
+        setData(json.data || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch history:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      fetchData(timeRange);
+    }
+  }, [status, timeRange]);
+
+  if (status === "loading") {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontFamily: 'sans-serif' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+          <div style={{ width: '40px', height: '40px', border: '3px solid #f3f3f3', borderTop: '3px solid #3498db', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+          <div style={{ color: '#666' }}>Загрузка...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === "unauthenticated") {
+    return <div>Access Denied</div>;
+  }
+
+  // Transform data for recharts
+  const chartData = data.map(point => {
+    const time = new Date(point.time_bucket);
+    let displayTime = "";
+    
+    if (timeRange === "hour" || timeRange === "today") {
+      displayTime = time.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    } else {
+      displayTime = time.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+    }
+
+    return {
+      time: displayTime,
+      fullTime: time.toLocaleString('ru-RU'),
+      ...point.balances
+    };
+  });
+
+  // Extract all unique bank names present in the data to create lines
+  const bankNames = Array.from(new Set(data.flatMap(d => Object.keys(d.balances))));
+
+  return (
+    <div className="app-container">
+      <Sidebar />
+      <main className="main-content">
+        <div className="header-row">
+          <div>
+            <h1 className="page-title">Отчеты</h1>
+            <div className="page-subtitle">Графики изменения остатков на счетах</div>
+          </div>
+        </div>
+
+        <div style={{ marginTop: '24px', backgroundColor: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+            <h2 style={{ margin: 0, fontSize: '18px', color: '#1e293b' }}>Динамика остатков по банкам</h2>
+            
+            <div style={{ display: 'flex', gap: '8px', backgroundColor: '#f1f5f9', padding: '4px', borderRadius: '8px' }}>
+              {(['hour', 'today', 'week', 'month'] as const).map(range => (
+                <button
+                  key={range}
+                  onClick={() => setTimeRange(range)}
+                  style={{
+                    padding: '6px 12px',
+                    border: 'none',
+                    borderRadius: '6px',
+                    backgroundColor: timeRange === range ? 'white' : 'transparent',
+                    boxShadow: timeRange === range ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                    color: timeRange === range ? '#0f172a' : '#64748b',
+                    fontWeight: timeRange === range ? 600 : 500,
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {range === 'hour' ? 'Час' : range === 'today' ? 'Сегодня' : range === 'week' ? 'Неделя' : 'Месяц'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ height: '500px', width: '100%' }}>
+            {loading ? (
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', color: '#64748b' }}>
+                Загрузка данных графика...
+              </div>
+            ) : chartData.length === 0 ? (
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', color: '#64748b' }}>
+                Нет данных за выбранный период
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis 
+                    dataKey="time" 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#64748b', fontSize: 12 }}
+                    dy={10}
+                  />
+                  <YAxis 
+                    tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#64748b', fontSize: 12 }}
+                    dx={-10}
+                  />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                    labelStyle={{ fontWeight: 'bold', color: '#0f172a', marginBottom: '8px' }}
+                    labelFormatter={(label, payload) => payload[0]?.payload?.fullTime || label}
+                    formatter={(value: any) => [formatCurrency(Number(value)), ""]}
+                  />
+                  <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+                  {bankNames.map((bank, index) => (
+                    <Line 
+                      key={bank}
+                      type="monotone" 
+                      dataKey={bank} 
+                      name={bank}
+                      stroke={BANK_COLORS[bank] || `hsl(${index * 60}, 70%, 50%)`} 
+                      strokeWidth={3}
+                      dot={false}
+                      activeDot={{ r: 6, strokeWidth: 0 }}
+                    />
+                  ))}
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}

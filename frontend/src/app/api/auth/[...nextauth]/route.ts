@@ -1,6 +1,14 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
+const ALLOWED_EMAILS = [
+  "begimai.askarbekova@redpetroleum.kg",
+  "jasmin.alymbekova@redpetroleum.kg",
+  "bolot.nurmamatov@redpetroleum.kg",
+  "adilet.smankulov@redpetroleum.kg",
+  "aijamal.madylbekova@redpetroleum.kg"
+];
+
 const handler = NextAuth({
   providers: [
     GoogleProvider({
@@ -10,6 +18,10 @@ const handler = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
+      if (!user.email || !ALLOWED_EMAILS.includes(user.email.toLowerCase())) {
+        return false; // Reject the login attempt
+      }
+
       if (user.email) {
         // Sync user to FastAPI backend
         try {

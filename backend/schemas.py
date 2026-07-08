@@ -39,3 +39,10 @@ class DashboardResponse(BaseModel):
     stats: DashboardStats
     banks: List[BankResponse]
     accounts: List[BankAccountBase] = []
+
+class HistoryDataPoint(BaseModel):
+    time_bucket: datetime
+    balances: dict[str, float]  # Bank name to balance mapping
+
+class HistoryResponse(BaseModel):
+    data: List[HistoryDataPoint]

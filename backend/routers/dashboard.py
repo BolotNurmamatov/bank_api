@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Depends, Header
+from fastapi import APIRouter, Depends, Header, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import func, text
 from database import get_db
 from models import Bank, ActivityLog, BankAccount
-from schemas import DashboardResponse, DashboardStats, BankResponse, BankAccountBase
+from schemas import DashboardResponse, DashboardStats, BankResponse, BankAccountBase, HistoryResponse, HistoryDataPoint
 from services.bank_api import update_banks_in_db
 from routers.auth import verify_internal_secret
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/api/v1/dashboard", tags=["Dashboard"])
 
@@ -64,3 +65,61 @@ def refresh_dashboard_data(user_email: str, db: Session = Depends(get_db)):
         db.commit()
         
     return get_dashboard_data(user_email=user_email, db=db)
+
+@router.get("/history", response_model=HistoryResponse, dependencies=[Depends(verify_internal_secret)])
+def get_dashboard_history(
+    time_range: str = Query("today", regex="^(hour|today|week|month)$"),
+    user_email: str = None, 
+    db: Session = Depends(get_db)
+):
+    now = datetime.now()
+    
+    if time_range == "hour":
+        start_time = now - timedelta(hours=1)
+        time_bucket_func = "toStartOfFiveMinutes(last_updated)"
+    elif time_range == "today":
+        start_time = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        time_bucket_func = "toStartOfHour(last_updated)"
+    elif time_range == "week":
+        start_time = now - timedelta(days=7)
+        time_bucket_func = "toStartOfDay(last_updated)"
+    else: # month
+        start_time = now - timedelta(days=30)
+        time_bucket_func = "toStartOfDay(last_updated)"
+
+    query = db.query(
+        text(f"{time_bucket_func} as time_bucket"),
+        Bank.name,
+        func.argMax(Bank.balance, Bank.last_updated).label('balance')
+    ).filter(
+        Bank.last_updated >= start_time
+    ).group_by(
+        text("time_bucket"),
+        Bank.name
+    ).order_by(
+        text("time_bucket")
+    )
+    
+    results = query.all()
+    
+    # Organize data: Group by time_bucket, then map bank_name -> balance
+    time_buckets = {}
+    for row in results:
+        # Depending on the ClickHouse driver, row[0] might be a datetime object or a string
+        bucket = row[0] if isinstance(row[0], datetime) else datetime.fromisoformat(row[0])
+        bank_name = row[1]
+        balance = row[2]
+        
+        if bucket not in time_buckets:
+            time_buckets[bucket] = {}
+            
+        time_buckets[bucket][bank_name] = balance
+        
+    history_data = []
+    for bucket in sorted(time_buckets.keys()):
+        history_data.append(HistoryDataPoint(
+            time_bucket=bucket,
+            balances=time_buckets[bucket]
+        ))
+        
+    return HistoryResponse(data=history_data)
