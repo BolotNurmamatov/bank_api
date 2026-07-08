@@ -38,7 +38,7 @@ def fetch_optima_accounts():
              accounts_list = accounts_data.get("accounts", [])
              
         for acc in accounts_list:
-            acc_num = acc.get("accountNumber") or acc.get("taccount") or "Unknown"
+            acc_num = acc.get("account") or acc.get("accountNumber") or acc.get("taccount") or "Unknown"
             bal = float(acc.get("balance") or acc.get("balanceAmount") or 0.0)
             currency = acc.get("currencyIsoCode") or acc.get("currency") or "KGS"
             
