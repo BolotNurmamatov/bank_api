@@ -23,6 +23,7 @@ interface BankAccount {
 interface Bank {
   name: string;
   logo_name: string;
+  last_updated?: string;
 }
 
 interface DashboardData {
