@@ -274,7 +274,7 @@ export default function Dashboard() {
                         <IconCheck /> {bank.status}
                       </span>
                     </td>
-                    <td>{formatDate(bank.last_updated).split(" ")[0]}</td>
+                    <td>{formatDate(bank.last_updated)}</td>
                   </tr>
                 ))}
                 <tr style={{ borderTop: "2px solid #ecf0f1", fontWeight: "bold" }}>
@@ -282,7 +282,7 @@ export default function Dashboard() {
                   <td>{formatCurrency(data?.stats.total_balance || 0).replace(" KGS", "")}</td>
                   <td>{data?.stats.total_accounts || 0}</td>
                   <td>-</td>
-                  <td>{formatDate(data?.stats.last_updated || null).split(" ")[0]}</td>
+                  <td>{formatDate(data?.stats.last_updated || null)}</td>
                 </tr>
               </tbody>
             </table>
