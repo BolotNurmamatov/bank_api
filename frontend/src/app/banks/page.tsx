@@ -42,6 +42,34 @@ export default function BanksPage() {
     }).format(amount) + ' ' + currency;
   };
 
+  const formatDateTime = (dateString: string | null) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "-";
+    
+    return new Intl.DateTimeFormat('ru-RU', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  };
+  
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await fetch('/api/backend-proxy?refresh=true', { method: 'POST' });
+      await fetchData();
+    } catch (err) {
+      console.error("Failed to force refresh", err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const fetchData = async () => {
     try {
       const res = await fetch(`/api/backend-proxy`);
@@ -94,7 +122,11 @@ export default function BanksPage() {
 
   return (
     <div className="app-container">
-      <Sidebar />
+      <Sidebar 
+        lastUpdated={data?.banks?.[0]?.last_updated ? formatDateTime(data.banks[0].last_updated) : null}
+        onRefresh={handleRefresh}
+        refreshing={refreshing}
+      />
       <main className="main-content">
         <div className="header-row">
           <div>
@@ -127,6 +159,7 @@ export default function BanksPage() {
                       <th style={{ padding: "12px 8px", color: "#64748b", fontWeight: 500 }}>Номер счета</th>
                       <th style={{ padding: "12px 8px", color: "#64748b", fontWeight: 500 }}>Валюта</th>
                       <th style={{ padding: "12px 8px", color: "#64748b", fontWeight: 500, textAlign: "right" }}>Остаток</th>
+                      <th style={{ padding: "12px 8px", color: "#64748b", fontWeight: 500, textAlign: "right" }}>Последнее обновление</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -136,6 +169,9 @@ export default function BanksPage() {
                         <td style={{ padding: "16px 8px", color: "#64748b" }}>{acc.currency}</td>
                         <td style={{ padding: "16px 8px", color: "#0f172a", fontWeight: 600, textAlign: "right" }}>
                           {formatCurrency(acc.balance, acc.currency)}
+                        </td>
+                        <td style={{ padding: "16px 8px", color: "#64748b", textAlign: "right", fontSize: "14px" }}>
+                          {formatDateTime(acc.last_updated)}
                         </td>
                       </tr>
                     ))}

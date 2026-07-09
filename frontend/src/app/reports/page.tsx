@@ -44,6 +44,19 @@ export default function ReportsPage() {
   const [data, setData] = useState<HistoryDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<"hour" | "today" | "week" | "month">("today");
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await fetch('/api/backend-proxy?refresh=true', { method: 'POST' });
+      await fetchData(timeRange);
+    } catch (err) {
+      console.error("Failed to force refresh", err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const fetchData = async (range: string) => {
     setLoading(true);
@@ -110,7 +123,10 @@ export default function ReportsPage() {
 
   return (
     <div className="app-container">
-      <Sidebar />
+      <Sidebar 
+        onRefresh={handleRefresh}
+        refreshing={refreshing}
+      />
       <main className="main-content">
         <div className="header-row">
           <div>
@@ -196,6 +212,36 @@ export default function ReportsPage() {
                 </LineChart>
               </ResponsiveContainer>
             )}
+          </div>
+        </div>
+
+        <div style={{ marginTop: '24px', backgroundColor: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+          <h2 style={{ margin: '0 0 24px 0', fontSize: '18px', color: '#1e293b' }}>Скачать данные</h2>
+          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+            <div style={{ flex: '1', minWidth: '200px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#64748b' }}>Банк</label>
+              <select style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                <option value="">Все банки</option>
+                {bankNames.map(b => <option key={b} value={b}>{b}</option>)}
+              </select>
+            </div>
+            <div style={{ flex: '1', minWidth: '200px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#64748b' }}>Счет</label>
+              <select style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                <option value="">Все счета</option>
+              </select>
+            </div>
+            <div style={{ flex: '1', minWidth: '150px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#64748b' }}>Дата с</label>
+              <input type="date" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+            </div>
+            <div style={{ flex: '1', minWidth: '150px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#64748b' }}>Дата по</label>
+              <input type="date" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+            </div>
+            <button style={{ padding: '10px 24px', backgroundColor: '#dc2626', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '500', cursor: 'pointer', height: '42px' }}>
+              Скачать (Excel)
+            </button>
           </div>
         </div>
       </main>

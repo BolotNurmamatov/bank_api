@@ -1,10 +1,7 @@
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-const IconBank = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>
-);
+import Image from "next/image";
 
 export function Sidebar({
   lastUpdated,
@@ -20,13 +17,18 @@ export function Sidebar({
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-header">
-        <IconBank />
-        <span>Казначейство</span>
+      <div className="sidebar-header" style={{ padding: '24px 24px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Image 
+          src="/image_2026-07-03_15-05-04.png" 
+          alt="Red Petroleum Logo" 
+          width={180} 
+          height={180} 
+          style={{ objectFit: 'contain', width: '100%', height: 'auto', borderRadius: '8px' }}
+        />
       </div>
       <div style={{ padding: '0 24px', marginBottom: '24px', color: '#64748b', fontSize: '14px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
         <span>{session?.user?.name}</span>
-        <button onClick={() => signOut()} style={{ background: 'none', border: 'none', padding: '0', color: '#3b82f6', cursor: 'pointer', textAlign: 'left', fontSize: '12px' }}>Выйти</button>
+        <button onClick={() => signOut()} style={{ background: 'none', border: 'none', padding: '0', color: '#dc2626', cursor: 'pointer', textAlign: 'left', fontSize: '12px' }}>Выйти</button>
       </div>
       <ul className="sidebar-menu">
         <Link href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -47,10 +49,6 @@ export function Sidebar({
             Отчеты
           </li>
         </Link>
-        <li className="sidebar-item">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /></svg>
-          Журнал запросов
-        </li>
       </ul>
       
       {onRefresh && (
@@ -61,7 +59,7 @@ export function Sidebar({
             style={{ 
               width: '100%', 
               padding: '12px', 
-              backgroundColor: refreshing ? '#94a3b8' : '#2563eb', 
+              backgroundColor: refreshing ? '#fca5a5' : '#dc2626', 
               color: 'white', 
               border: 'none', 
               borderRadius: '8px', 
@@ -73,7 +71,7 @@ export function Sidebar({
               justifyContent: 'center', 
               gap: '8px',
               transition: 'background-color 0.2s',
-              boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2), 0 2px 4px -1px rgba(37, 99, 235, 0.1)'
+              boxShadow: '0 4px 6px -1px rgba(220, 38, 38, 0.2), 0 2px 4px -1px rgba(220, 38, 38, 0.1)'
             }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={refreshing ? "spin-animation" : ""}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg>
