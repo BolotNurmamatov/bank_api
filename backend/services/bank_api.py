@@ -46,9 +46,9 @@ def update_banks_in_db():
     try:
         now = datetime.now()
         
-        # Get last known states
+        # Get last known states that were successful
         last_states = {}
-        for b in db.query(Bank).order_by(Bank.last_updated.desc()).all():
+        for b in db.query(Bank).filter(~Bank.status.like('%Ошибка%')).order_by(Bank.last_updated.desc()).all():
             if b.name not in last_states:
                 last_states[b.name] = b
 
