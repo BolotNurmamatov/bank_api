@@ -13,6 +13,9 @@ def fetch_aiyl_accounts():
     auth_url = os.getenv("ABANK_URL_AUTH")
     username = os.getenv("ABANK_USERNAME")
     password = os.getenv("ABANK_PASSWORD")
+    # We will get comma-separated accounts from .env
+    abank_accounts_str = os.getenv("ABANK_ACCOUNTS")
+    accounts_list = [acc.strip() for acc in abank_accounts_str.split(",") if acc.strip()]
     
     # Base URL for balances
     balance_base_url = os.getenv("ABANK_BASE_URL")
@@ -33,23 +36,6 @@ def fetch_aiyl_accounts():
                 "Authorization": f"Bearer {access_token}",
                 "Content-Type": "application/json"
             }
-            
-            # Extract accounts from the auth data directly
-            # It might be in auth_data["data"]["accounts"] or auth_data["accounts"]
-            raw_accounts = auth_data.get("data", {}).get("accounts", []) or auth_data.get("accounts", [])
-            accounts_list = []
-            
-            for acc in raw_accounts:
-                if isinstance(acc, dict):
-                    acc_num = acc.get("account") or acc.get("accountNumber") or acc.get("number")
-                    if acc_num:
-                        accounts_list.append(str(acc_num))
-                else:
-                    accounts_list.append(str(acc))
-                    
-            # Fallback if no accounts are found in auth response, maybe we can't fetch them
-            if not accounts_list:
-                print("Warning: No accounts found in Aiyl auth response. auth_data:", auth_data)
             
             valid_accounts = []
             total_balance = 0.0
