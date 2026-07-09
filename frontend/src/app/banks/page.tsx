@@ -59,11 +59,11 @@ export default function BanksPage() {
   useEffect(() => {
     if (status === "authenticated") {
       fetchData();
-      
+
       const intervalId = setInterval(() => {
         fetchData();
       }, 60000);
-      
+
       return () => clearInterval(intervalId);
     }
   }, [status]);
@@ -110,14 +110,14 @@ export default function BanksPage() {
                 <img
                   src={BANK_LOGOS[group.bank.logo_name]}
                   alt={`${group.bank.name} logo`}
-                  width={40}
-                  height={40}
+                  width={56}
+                  height={56}
                   onError={(e) => { e.currentTarget.style.display = 'none'; }}
                   style={{ borderRadius: '8px', objectFit: 'contain' }}
                 />
                 <h2 style={{ margin: 0, fontSize: "20px", color: "#1e293b" }}>{group.bank.name}</h2>
               </div>
-              
+
               {group.accounts.length === 0 ? (
                 <div style={{ color: "#64748b", padding: "16px 0" }}>Нет данных по счетам</div>
               ) : (
