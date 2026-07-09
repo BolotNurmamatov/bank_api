@@ -62,6 +62,12 @@ export default function ReportsPage() {
   useEffect(() => {
     if (status === "authenticated") {
       fetchData(timeRange);
+      
+      const intervalId = setInterval(() => {
+        fetchData(timeRange);
+      }, 60000);
+      
+      return () => clearInterval(intervalId);
     }
   }, [status, timeRange]);
 

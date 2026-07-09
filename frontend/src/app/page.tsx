@@ -108,6 +108,13 @@ export default function Dashboard() {
   useEffect(() => {
     if (status === "authenticated") {
       fetchData();
+      
+      // Auto-refresh data every 60 seconds silently
+      const intervalId = setInterval(() => {
+        fetchData();
+      }, 60000);
+      
+      return () => clearInterval(intervalId);
     }
   }, [status]);
 

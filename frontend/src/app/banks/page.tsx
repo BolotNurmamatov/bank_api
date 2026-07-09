@@ -56,6 +56,12 @@ export default function BanksPage() {
   useEffect(() => {
     if (status === "authenticated") {
       fetchData();
+      
+      const intervalId = setInterval(() => {
+        fetchData();
+      }, 60000);
+      
+      return () => clearInterval(intervalId);
     }
   }, [status]);
 
