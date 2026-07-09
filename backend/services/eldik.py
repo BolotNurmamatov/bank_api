@@ -30,7 +30,9 @@ def fetch_eldik_accounts():
             currency = acc.get("currency", "KGS")
             if currency in ["KGS", "417"]:
                 acc_num = acc.get("taccount", "Unknown")
-                bal = float(acc.get("balance", 0.0))
+                # Eldik API might store the precise fractional balance in 'accountSaldo' or 'balanceAmount'
+                raw_bal = acc.get("accountSaldo") or acc.get("balanceAmount") or acc.get("balance") or 0.0
+                bal = float(raw_bal)
                 
                 valid_accounts.append({
                     "id": str(uuid.uuid4()),
