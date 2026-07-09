@@ -161,20 +161,24 @@ export default function Dashboard() {
 
   return (
     <div className="app-container">
-      <Sidebar />
+      <Sidebar 
+        lastUpdated={formatDate(data?.stats.last_updated || null)} 
+        onRefresh={handleRefresh} 
+        refreshing={refreshing} 
+      />
 
       <main className="main-content">
         <div className="header-row">
           <div>
-            <h1 className="page-title">Обзор остатков</h1>
+            <h1 className="page-title">
+              Обзор остатков 
+              {data?.stats.last_updated && (
+                <span style={{ fontSize: "14px", color: "#64748b", fontWeight: "normal", marginLeft: "12px" }}>
+                  (на {formatDate(data.stats.last_updated)})
+                </span>
+              )}
+            </h1>
             <div className="page-subtitle">Консолидированная информация по остаткам на расчетных счетах (только KGS)</div>
-          </div>
-          <div className="header-actions">
-            <span>Обновлено: {formatDate(data?.stats.last_updated || null)}</span>
-            <button className="refresh-btn" onClick={handleRefresh} disabled={refreshing}>
-              <IconRefresh />
-              {refreshing ? 'Обновление...' : 'Обновить'}
-            </button>
           </div>
         </div>
 
@@ -201,14 +205,6 @@ export default function Dashboard() {
               <span className="stat-title">Количество счетов</span>
               <span className="stat-value">{data?.stats.total_accounts || 0}</span>
               <span className="stat-subtitle">расчетных счетов</span>
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon"><IconClock /></div>
-            <div className="stat-info">
-              <span className="stat-title">Последнее обновление</span>
-              <span className="stat-value" style={{ fontSize: "16px", marginTop: "12px" }}>{formatDate(data?.stats.last_updated || null)}</span>
-              <span className="stat-subtitle">успешно</span>
             </div>
           </div>
         </div>

@@ -6,7 +6,15 @@ const IconBank = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>
 );
 
-export function Sidebar() {
+export function Sidebar({
+  lastUpdated,
+  onRefresh,
+  refreshing
+}: {
+  lastUpdated?: string | null;
+  onRefresh?: () => void;
+  refreshing?: boolean;
+} = {}) {
   const { data: session } = useSession();
   const pathname = usePathname();
 
@@ -44,6 +52,40 @@ export function Sidebar() {
           Журнал запросов
         </li>
       </ul>
+      
+      {onRefresh && (
+        <div style={{ padding: '24px', borderTop: '1px solid var(--border-color)', marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <button 
+            onClick={onRefresh} 
+            disabled={refreshing}
+            style={{ 
+              width: '100%', 
+              padding: '12px', 
+              backgroundColor: refreshing ? '#94a3b8' : '#2563eb', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '8px', 
+              fontWeight: 'bold', 
+              fontSize: '15px', 
+              cursor: refreshing ? 'not-allowed' : 'pointer', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              gap: '8px',
+              transition: 'background-color 0.2s',
+              boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2), 0 2px 4px -1px rgba(37, 99, 235, 0.1)'
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={refreshing ? "spin-animation" : ""}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg>
+            {refreshing ? 'Обновляется...' : 'Обновить данные'}
+          </button>
+          {lastUpdated && (
+            <div style={{ fontSize: '13px', color: '#64748b', textAlign: 'center' }}>
+              Обновлено: <br/><strong style={{color: '#334155'}}>{lastUpdated}</strong>
+            </div>
+          )}
+        </div>
+      )}
     </aside>
   );
 }
