@@ -22,6 +22,7 @@ def get_dashboard_data(user_email: str, db: Session = Depends(get_db)):
             latest_banks[record.name] = record
             
     banks = list(latest_banks.values())
+    banks.sort(key=lambda b: b.name)
     
     # Get latest accounts per bank_name + account_number
     all_accounts_records = db.query(BankAccount).order_by(BankAccount.last_updated.desc()).all()
@@ -32,6 +33,7 @@ def get_dashboard_data(user_email: str, db: Session = Depends(get_db)):
             latest_accounts[key] = acc
             
     accounts = list(latest_accounts.values())
+    accounts.sort(key=lambda a: (a.bank_name, a.account_number))
     
     total_balance = sum([b.balance for b in banks])
     total_banks_connected = len([b for b in banks if b.status == "Подключено"])
