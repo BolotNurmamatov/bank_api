@@ -17,6 +17,9 @@ def fetch_optima_accounts():
     if not optima_base_url or not optima_api_key:
         return 0.0, 0, "Ошибка (Ключи не заданы)", []
 
+    optima_accounts_env = os.getenv("OPTIMA_ACCOUNTS", "")
+    allowed_accounts = [acc.strip() for acc in optima_accounts_env.split(",") if acc.strip()]
+
     try:
         url = f"{optima_base_url.rstrip('/')}/api/v1/get-account-infos-by-filter"
         headers = {"X-API-KEY": optima_api_key, "Accept": "application/json"}
@@ -31,14 +34,16 @@ def fetch_optima_accounts():
         now = datetime.now()
         
         # Depending on Optima response format, we assume it's a list or has a data wrapper.
-        # usually accounts_data might be a list or a dict containing 'data' or 'accounts'
-        # Adjust parsing if necessary based on real payload structure.
         accounts_list = accounts_data if isinstance(accounts_data, list) else accounts_data.get("data", [])
         if not accounts_list and isinstance(accounts_data, dict):
              accounts_list = accounts_data.get("accounts", [])
              
         for acc in accounts_list:
             acc_num = acc.get("account") or acc.get("accountNumber") or acc.get("taccount") or "Unknown"
+            
+            if allowed_accounts and acc_num not in allowed_accounts:
+                continue
+
             bal = float(acc.get("balance") or acc.get("balanceAmount") or 0.0)
             currency = acc.get("currencyIsoCode") or acc.get("currency") or "KGS"
             
