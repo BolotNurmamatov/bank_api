@@ -62,7 +62,10 @@ export default function Dashboard() {
   const [refreshing, setRefreshing] = useState(false);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ru-RU').format(amount) + ' KGS';
+    return new Intl.NumberFormat('ru-RU', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount) + ' KGS';
   };
 
   const formatDate = (dateString: string | null) => {

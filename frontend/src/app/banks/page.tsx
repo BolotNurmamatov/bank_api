@@ -36,7 +36,10 @@ export default function BanksPage() {
   const [loading, setLoading] = useState(true);
 
   const formatCurrency = (amount: number, currency: string) => {
-    return new Intl.NumberFormat('ru-RU').format(amount) + ' ' + currency;
+    return new Intl.NumberFormat('ru-RU', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount) + ' ' + currency;
   };
 
   const fetchData = async () => {
