@@ -11,11 +11,17 @@ def fetch_aiyl_accounts():
     Fetches KGS accounts from Aiyl Bank and returns (balance, account_count, status, accounts_list).
     """
     auth_url = os.getenv("ABANK_URL_AUTH")
-    data_url = os.getenv("DATA_URL")
     username = os.getenv("ABANK_USERNAME")
     password = os.getenv("ABANK_PASSWORD")
+    
+    # We will get comma-separated accounts from .env
+    abank_accounts_str = os.getenv("ABANK_ACCOUNTS", "1350152009915425")
+    accounts_list = [acc.strip() for acc in abank_accounts_str.split(",") if acc.strip()]
+    
+    # Base URL for balances
+    balance_base_url = os.getenv("ABANK_BASE_URL")
 
-    if not all([auth_url, username, password, data_url]):
+    if not all([auth_url, username, password]):
         return 0.0, 0, "Ошибка (Ключи не заданы)", []
 
     credentials = {"username": username, "password": password}
@@ -27,29 +33,42 @@ def fetch_aiyl_accounts():
         access_token = auth_data.get("data", {}).get("access_token")
 
         if access_token:
-            # 2. Get Data
             headers = {
                 "Authorization": f"Bearer {access_token}",
                 "Content-Type": "application/json"
             }
-            data_response = requests.get(data_url, headers=headers, verify=False, timeout=10)
-            data_response.raise_for_status()
-            response_json = data_response.json()
             
-            # Aiyl Bank currently returns just a single balance number as a mock or simple API response in the project
-            # API response: {'statusCode': 0, 'message': 'Успешно!', 'state': 'SUCCESS', 'data': 50000.0}
-            if response_json.get("state") == "SUCCESS":
-                bal = float(response_json.get("data", 0.0))
-                now = datetime.now()
-                valid_accounts = [{
-                    "id": str(uuid.uuid4()),
-                    "bank_name": "Айыл Банк",
-                    "account_number": "Основной счет KGS",
-                    "currency": "KGS",
-                    "balance": bal,
-                    "last_updated": now
-                }]
-                return bal, 1, "Подключено", valid_accounts
+            valid_accounts = []
+            total_balance = 0.0
+            now = datetime.now()
+            
+            # 2. Iterate through each account
+            for acc_num in accounts_list:
+                url = f"{balance_base_url}?account={acc_num}&currency=KGS"
+                try:
+                    data_response = requests.get(url, headers=headers, verify=False, timeout=10)
+                    data_response.raise_for_status()
+                    response_json = data_response.json()
+                    
+                    if response_json.get("state") == "SUCCESS":
+                        bal = float(response_json.get("data", 0.0))
+                        valid_accounts.append({
+                            "id": str(uuid.uuid4()),
+                            "bank_name": "Айыл Банк",
+                            "account_number": acc_num,
+                            "currency": "KGS",
+                            "balance": bal,
+                            "last_updated": now
+                        })
+                        total_balance += bal
+                except Exception as req_err:
+                    print(f"Error fetching account {acc_num}: {req_err}")
+                    
+            if valid_accounts:
+                return total_balance, len(valid_accounts), "Подключено", valid_accounts
+            else:
+                return 0.0, 0, "Ошибка (Нет доступных счетов)", []
+                
         return 0.0, 0, "Ошибка (Авторизация не удалась)", []
     except Exception as e:
         print(f"Error fetching Aiyl bank data: {e}")

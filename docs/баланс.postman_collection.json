@@ -1,0 +1,272 @@
+{
+  "info": {
+    "_postman_id": "4ff281bd-7692-40af-b9f3-c571b9e3f648",
+    "name": "Оналайн кредиты",
+    "description": "Авторизация\n\nContact Support:\n Name: AB IT\n Email: support@ab.kg",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "25057737",
+    "_collection_link": "https://go.postman.co/collection/25057737-4ff281bd-7692-40af-b9f3-c571b9e3f648?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "api",
+      "item": [
+        {
+          "name": "v1",
+          "item": [
+            {
+              "name": "business",
+              "item": [
+                {
+                  "name": "balance",
+                  "item": [
+                    {
+                      "name": "Получение остатка по счёту",
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": [
+                            {
+                              "key": "token",
+                              "value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJlVFJjYnFQbUNvTWNPcDZhYk83dFdHeTI2Q1cyQjE5dlkxbXo0U3JGMTlFIn0.eyJleHAiOjE3ODE4NTE3NDgsImlhdCI6MTc4MTg0NDU0OCwianRpIjoib25ydHJvOmE0NmE0MjIxLTU5YmEtMGQxZC1jMTUxLWZhNjExOTE0MTZkMCIsImlzcyI6Imh0dHBzOi8vc3RhZ2UtYXBpLmFiLmtnOjg0NDMvYXV0aC9yZWFsbXMvYWItZ2VuZXJhbCIsInN1YiI6ImQxMmEzYjJmLTk4ZGUtNGFhYS04NTI0LTg1ZDg5ZTg1MGI3YSIsInR5cCI6IkJlYXJlciIsImF6cCI6ImFiLWJ1c2luZXNzLWNsaWVudC1jbGllbnQiLCJzaWQiOiI0NjM2Y2E3Yi00YmM2LTRiYjctYWFkNi04MzAzZmRkOTEyZjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbIi8qIl0sInJlc291cmNlX2FjY2VzcyI6eyJhYi1idXNpbmVzcy1jbGllbnQtY2xpZW50Ijp7InJvbGVzIjpbImFsZmEtb2lsLWNsaWVudC1yb2xlIiwiUE9TX1RFUk1JTkFMIiwiQkFMQU5DRSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsImVtYWlsX3ZlcmlmaWVkIjpmYWxzZSwicHJlZmVycmVkX3VzZXJuYW1lIjoiYWxmYS1vaWwtY2xpZW50LXVzZXIiLCJjbGllbnRfaWQiOiIyMzkxMDQifQ.b4NWABIPJeWOD54P3nqSu70R5NJJ1BF1cSl1KdJ__BF3K_edQMSKR-61tsc-tRHVe8453nu0h7J_rNiHBESS4MHQhE6Hek0fewCimSopQfFeeUnkKJX_6qK4zDAHhnEhuhDUGpmhkYnLYzvkvyN4KgHmwIBobQoOuk_VHAPxj8PobyJcvI5XGI7ppAtwbqjlexzXxe_GDkxl8WzKODgk_9m1cUzhXC4jQQc_1qx21ijYgSSJ7l40xer0MnwfcbzddmCbFOWn1kZdCsIDyKoTSaFK7MdX79tyruN4ft60ys3hkzCn8_TrJyUeTn1yz51Jc6EviwpRMGyYx0uGfrtrkw",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "method": "GET",
+                        "header": [
+                          {
+                            "key": "Accept",
+                            "value": "*/*"
+                          }
+                        ],
+                        "url": {
+                          "raw": "http://10.64.120.20:31456/ab-business-client/api/v1/business/balance?account=1350152009915425&currency=KGS",
+                          "protocol": "http",
+                          "host": [
+                            "10",
+                            "64",
+                            "120",
+                            "20"
+                          ],
+                          "port": "31456",
+                          "path": [
+                            "ab-business-client",
+                            "api",
+                            "v1",
+                            "business",
+                            "balance"
+                          ],
+                          "query": [
+                            {
+                              "key": "account",
+                              "value": "1350152009915425",
+                              "description": "Номер счёта"
+                            },
+                            {
+                              "key": "currency",
+                              "value": "KGS",
+                              "description": "Код валюты"
+                            }
+                          ]
+                        }
+                      },
+                      "response": [
+                        {
+                          "name": "OK",
+                          "originalRequest": {
+                            "method": "GET",
+                            "header": [
+                              {
+                                "key": "Accept",
+                                "value": "*/*"
+                              },
+                              {
+                                "description": "Added as a part of security scheme: bearer",
+                                "key": "Authorization",
+                                "value": "Bearer <token>"
+                              }
+                            ],
+                            "url": {
+                              "raw": "{{baseUrl}}/api/v1/business/balance?account=40817810000000000000&currency=KGS",
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "api",
+                                "v1",
+                                "business",
+                                "balance"
+                              ],
+                              "query": [
+                                {
+                                  "description": "Номер счёта",
+                                  "key": "account",
+                                  "value": "40817810000000000000"
+                                },
+                                {
+                                  "description": "Код валюты",
+                                  "key": "currency",
+                                  "value": "KGS"
+                                }
+                              ]
+                            }
+                          },
+                          "status": "OK",
+                          "code": 200,
+                          "_postman_previewlanguage": "text",
+                          "header": [
+                            {
+                              "key": "Content-Type",
+                              "value": "*/*"
+                            }
+                          ],
+                          "cookie": [],
+                          "body": "{\n  \"statusCode\": 2037,\n  \"message\": \"string\",\n  \"state\": \"PROCESSING\",\n  \"data\": 663.52751767629\n}"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "auth",
+              "item": [
+                {
+                  "name": "authenticate",
+                  "item": [
+                    {
+                      "name": "Авторизация / получение токена",
+                      "request": {
+                        "method": "POST",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"password\": \"alfa-oil-client-user\",\n  \"username\": \"alfa-oil-client-user\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "http://10.64.120.20:31456/ab-business-client/api/v1/auth/authenticate",
+                          "protocol": "http",
+                          "host": [
+                            "10",
+                            "64",
+                            "120",
+                            "20"
+                          ],
+                          "port": "31456",
+                          "path": [
+                            "ab-business-client",
+                            "api",
+                            "v1",
+                            "auth",
+                            "authenticate"
+                          ]
+                        }
+                      },
+                      "response": [
+                        {
+                          "name": "OK",
+                          "originalRequest": {
+                            "method": "POST",
+                            "header": [
+                              {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                              },
+                              {
+                                "key": "Accept",
+                                "value": "application/json"
+                              },
+                              {
+                                "description": "Added as a part of security scheme: bearer",
+                                "key": "Authorization",
+                                "value": "Bearer <token>"
+                              }
+                            ],
+                            "body": {
+                              "mode": "raw",
+                              "raw": "{\n  \"password\": \"password\",\n  \"username\": \"login\"\n}",
+                              "options": {
+                                "raw": {
+                                  "headerFamily": "json",
+                                  "language": "json"
+                                }
+                              }
+                            },
+                            "url": {
+                              "raw": "{{baseUrl}}/api/v1/auth/authenticate",
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "api",
+                                "v1",
+                                "auth",
+                                "authenticate"
+                              ]
+                            }
+                          },
+                          "status": "OK",
+                          "code": 200,
+                          "_postman_previewlanguage": "json",
+                          "header": [
+                            {
+                              "key": "Content-Type",
+                              "value": "application/json"
+                            }
+                          ],
+                          "cookie": [],
+                          "body": "{\n  \"statusCode\": 9555,\n  \"message\": \"string\",\n  \"state\": \"NOT_FOUND\",\n  \"data\": {\n    \"access_token\": \"string\"\n  }\n}"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ]
+}
