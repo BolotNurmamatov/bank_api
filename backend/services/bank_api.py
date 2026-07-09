@@ -45,14 +45,31 @@ def update_banks_in_db():
     
     try:
         now = datetime.now()
+        
+        # Get last known states
+        last_states = {}
+        for b in db.query(Bank).order_by(Bank.last_updated.desc()).all():
+            if b.name not in last_states:
+                last_states[b.name] = b
+
         # 1. Update Banks
         for bank_data in banks_summary:
+            status = bank_data["status"]
+            balance = bank_data["balance"]
+            account_count = bank_data["account_count"]
+            
+            if "Ошибка" in status:
+                last_state = last_states.get(bank_data["name"])
+                if last_state:
+                    balance = last_state.balance
+                    account_count = last_state.account_count
+
             db_bank = Bank(
                 name=bank_data["name"],
                 logo_name=bank_data["logo_name"],
-                status=bank_data["status"],
-                account_count=bank_data["account_count"],
-                balance=bank_data["balance"],
+                status=status,
+                account_count=account_count,
+                balance=balance,
                 last_updated=now
             )
             db.add(db_bank)
