@@ -48,7 +48,7 @@ def update_banks_in_db():
         
         # Get last known states that were successful
         last_states = {}
-        for b in db.query(Bank).filter(~Bank.status.like('%Ошибка%')).order_by(Bank.last_updated.desc()).all():
+        for b in db.query(Bank).filter(Bank.status == 'Подключено').order_by(Bank.last_updated.desc()).all():
             if b.name not in last_states:
                 last_states[b.name] = b
 
