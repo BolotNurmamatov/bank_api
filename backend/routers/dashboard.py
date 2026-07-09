@@ -154,7 +154,7 @@ def download_data(
     db: Session = Depends(get_db)
 ):
     sql = """
-        SELECT bank_name, account_number, currency, argMax(balance, last_updated) as balance, max(last_updated) as last_updated
+        SELECT bank_name, account_number, currency, argMax(balance, last_updated) as balance, max(last_updated) as latest_update
         FROM bank_accounts
         WHERE 1=1
     """
@@ -183,7 +183,7 @@ def download_data(
         except ValueError:
             pass
 
-    sql += " GROUP BY bank_name, account_number, currency, toDate(last_updated) ORDER BY last_updated DESC"
+    sql += " GROUP BY bank_name, account_number, currency, toDate(last_updated) ORDER BY latest_update DESC"
     
     records = db.execute(text(sql), params).fetchall()
     
@@ -198,7 +198,7 @@ def download_data(
             r.account_number,
             r.currency,
             float(r.balance),
-            r.last_updated.strftime("%Y-%m-%d %H:%M:%S") if isinstance(r.last_updated, datetime) else str(r.last_updated)
+            r.latest_update.strftime("%Y-%m-%d %H:%M:%S") if isinstance(r.latest_update, datetime) else str(r.latest_update)
         ])
         
     output = io.BytesIO()
