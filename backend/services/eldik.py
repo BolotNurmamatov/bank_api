@@ -13,6 +13,9 @@ def fetch_eldik_accounts():
     if not eldik_base_url or not eldik_api_key:
         return 0.0, 0, "Ошибка (Ключи не заданы)", []
 
+    eldik_accounts_env = os.getenv("ELDIK_BANK_ACCOUNTS", "")
+    allowed_accounts = [acc.strip() for acc in eldik_accounts_env.split(",") if acc.strip()]
+
     try:
         url = f"{eldik_base_url.rstrip('/')}/api/rko/open-api/all-accounts-balance"
         response = requests.get(url, headers={"apiKey": eldik_api_key}, timeout=15)
@@ -24,13 +27,14 @@ def fetch_eldik_accounts():
         now = datetime.now()
         
         for acc in accounts_data:
-            # We want only KGS accounts. 
-            # If 'currency' key exists, check it. If missing, we might assume KGS or safely skip.
-            # Usually KGS accounts have currency: 'KGS' or '417'.
+            acc_num = acc.get("taccount", "Unknown")
+            
+            # Filter by exactly the accounts specified in .env
+            if allowed_accounts and acc_num not in allowed_accounts:
+                continue
+
             currency = acc.get("currency", "KGS")
             if currency in ["KGS", "417"]:
-                acc_num = acc.get("taccount", "Unknown")
-                # Eldik API might store the precise fractional balance in 'accountSaldo' or 'balanceAmount'
                 raw_bal = acc.get("accountSaldo") or acc.get("balanceAmount") or acc.get("balance") or 0.0
                 bal = float(raw_bal)
                 
