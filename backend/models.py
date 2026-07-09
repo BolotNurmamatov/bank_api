@@ -3,6 +3,8 @@ from clickhouse_sqlalchemy import engines
 from database import Base
 from datetime import datetime
 
+from clickhouse_sqlalchemy.types import Float64
+
 class Bank(Base):
     __tablename__ = "banks"
 
@@ -11,7 +13,7 @@ class Bank(Base):
     logo_name = Column(String)
     status = Column(String)
     account_count = Column(Integer)
-    balance = Column(Float)
+    balance = Column(Float64)
 
     __table_args__ = (
         engines.MergeTree(order_by=['name', 'last_updated']),
@@ -36,7 +38,7 @@ class BankAccount(Base):
     bank_name = Column(String)
     account_number = Column(String)
     currency = Column(String)
-    balance = Column(Float)
+    balance = Column(Float64)
     last_updated = Column(DateTime, default=datetime.now)
 
     __table_args__ = (
