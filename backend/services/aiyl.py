@@ -15,7 +15,7 @@ def fetch_aiyl_accounts():
     password = os.getenv("ABANK_PASSWORD")
     
     # Base URL for balances
-    balance_base_url = os.getenv("ABANK_BASE_URL", "https://172.27.47.2:8381/ab-business-client/api/v1/business/balance")
+    balance_base_url = os.getenv("ABANK_BASE_URL")
 
     if not all([auth_url, username, password]):
         return 0.0, 0, "Ошибка (Ключи не заданы)", []
