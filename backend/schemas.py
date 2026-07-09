@@ -46,3 +46,8 @@ class HistoryDataPoint(BaseModel):
 
 class HistoryResponse(BaseModel):
     data: List[HistoryDataPoint]
+
+class LogRequest(BaseModel):
+    action: str
+    page_url: str | None = None
+    details: str | None = None

@@ -42,9 +42,24 @@ const formatCurrency = (value: number) => {
 export default function ReportsPage() {
   const { status } = useSession();
   const [data, setData] = useState<HistoryDataPoint[]>([]);
+  const [accounts, setAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<"hour" | "today" | "week" | "month">("today");
   const [refreshing, setRefreshing] = useState(false);
+
+  // Download Filters
+  const [selectedBank, setSelectedBank] = useState("");
+  const [selectedAccount, setSelectedAccount] = useState("");
+  
+  // Default dates: 7 days ago to today
+  const [dateFrom, setDateFrom] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    return d.toISOString().split('T')[0];
+  });
+  const [dateTo, setDateTo] = useState(() => {
+    return new Date().toISOString().split('T')[0];
+  });
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -66,8 +81,14 @@ export default function ReportsPage() {
         const json: HistoryResponse = await res.json();
         setData(json.data || []);
       }
+      
+      const accRes = await fetch(`/api/backend-proxy`);
+      if (accRes.ok) {
+        const accJson = await accRes.json();
+        setAccounts(accJson.accounts || []);
+      }
     } catch (err) {
-      console.error("Failed to fetch history:", err);
+      console.error("Failed to fetch data:", err);
     } finally {
       setLoading(false);
     }
@@ -120,6 +141,31 @@ export default function ReportsPage() {
 
   // Extract all unique bank names present in the data to create lines
   const bankNames = Array.from(new Set(data.flatMap(d => Object.keys(d.balances))));
+
+  const handleDownload = async () => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (selectedBank) queryParams.append('bank', selectedBank);
+      if (selectedAccount) queryParams.append('account', selectedAccount);
+      if (dateFrom) queryParams.append('date_from', dateFrom);
+      if (dateTo) queryParams.append('date_to', dateTo);
+
+      const res = await fetch(`/api/download?${queryParams.toString()}`);
+      if (!res.ok) throw new Error("Download failed");
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `report_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert("Ошибка при скачивании данных");
+    }
+  };
 
   return (
     <div className="app-container">
@@ -184,6 +230,7 @@ export default function ReportsPage() {
                     dy={10}
                   />
                   <YAxis 
+                    domain={[-1000000, 'auto']}
                     tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
                     axisLine={false}
                     tickLine={false}
@@ -220,26 +267,60 @@ export default function ReportsPage() {
           <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
             <div style={{ flex: '1', minWidth: '200px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#64748b' }}>Банк</label>
-              <select style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+              <select 
+                value={selectedBank} 
+                onChange={(e) => {
+                  setSelectedBank(e.target.value);
+                  setSelectedAccount(""); // Reset account when bank changes
+                }} 
+                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              >
                 <option value="">Все банки</option>
-                {bankNames.map(b => <option key={b} value={b}>{b}</option>)}
+                {Array.from(new Set(accounts.map(a => a.bank_name))).map((b: any) => (
+                  <option key={b} value={b}>{b}</option>
+                ))}
               </select>
             </div>
             <div style={{ flex: '1', minWidth: '200px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#64748b' }}>Счет</label>
-              <select style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+              <select 
+                value={selectedAccount} 
+                onChange={(e) => setSelectedAccount(e.target.value)} 
+                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              >
                 <option value="">Все счета</option>
+                {accounts
+                  .filter(a => selectedBank === "" || a.bank_name === selectedBank)
+                  .map(a => (
+                    <option key={a.account_number} value={a.account_number}>
+                      {a.account_number} {a.currency && `(${a.currency})`}
+                    </option>
+                  ))
+                }
               </select>
             </div>
             <div style={{ flex: '1', minWidth: '150px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#64748b' }}>Дата с</label>
-              <input type="date" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+              <input 
+                type="date" 
+                value={dateFrom} 
+                onChange={(e) => setDateFrom(e.target.value)} 
+                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} 
+              />
             </div>
             <div style={{ flex: '1', minWidth: '150px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#64748b' }}>Дата по</label>
-              <input type="date" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+              <input 
+                type="date" 
+                value={dateTo} 
+                onChange={(e) => setDateTo(e.target.value)} 
+                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} 
+              />
             </div>
-            <button style={{ padding: '10px 24px', backgroundColor: '#dc2626', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '500', cursor: 'pointer', height: '42px' }}>
+            <button 
+              onClick={handleDownload} 
+              style={{ padding: '10px 24px', backgroundColor: '#dc2626', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '500', cursor: 'pointer', height: '42px', boxShadow: '0 4px 6px -1px rgba(220, 38, 38, 0.2)' }}
+            >
               Скачать (Excel)
             </button>
           </div>

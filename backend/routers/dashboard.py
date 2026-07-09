@@ -3,7 +3,10 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, text
 from database import get_db
 from models import Bank, ActivityLog, BankAccount
-from schemas import DashboardResponse, DashboardStats, BankResponse, BankAccountBase, HistoryResponse, HistoryDataPoint
+from schemas import DashboardResponse, DashboardStats, BankResponse, BankAccountBase, HistoryResponse, HistoryDataPoint, LogRequest
+from fastapi.responses import StreamingResponse
+import io
+import csv
 from services.bank_api import update_banks_in_db
 from routers.auth import verify_internal_secret
 import uuid
@@ -125,3 +128,72 @@ def get_dashboard_history(
         ))
         
     return HistoryResponse(data=history_data)
+@router.post("/log")
+def log_action(request: LogRequest, user_email: str = Header(None), db: Session = Depends(get_db)):
+    email = user_email or "unknown@redpetroleum.kg"
+    new_log = ActivityLog(
+        id=str(uuid.uuid4()),
+        user_email=email,
+        action=request.action,
+        page_url=request.page_url,
+        details=request.details
+    )
+    db.add(new_log)
+    db.commit()
+    return {"status": "ok"}
+
+@router.get("/download")
+def download_data(
+    bank: str = Query(None),
+    account: str = Query(None),
+    date_from: str = Query(None),
+    date_to: str = Query(None),
+    user_email: str = Header(None),
+    db: Session = Depends(get_db)
+):
+    query = db.query(BankAccount)
+    
+    if bank:
+        query = query.filter(BankAccount.bank_name == bank)
+    if account:
+        query = query.filter(BankAccount.account_number == account)
+        
+    if date_from:
+        try:
+            df = datetime.strptime(date_from, "%Y-%m-%d")
+            query = query.filter(BankAccount.last_updated >= df)
+        except ValueError:
+            pass
+    if date_to:
+        try:
+            dt = datetime.strptime(date_to, "%Y-%m-%d")
+            dt = dt + timedelta(days=1)
+            query = query.filter(BankAccount.last_updated < dt)
+        except ValueError:
+            pass
+
+    records = query.order_by(BankAccount.last_updated.desc()).all()
+    
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter=';')
+    writer.writerow(["Банк", "Счет", "Валюта", "Остаток", "Дата и время"])
+    
+    for r in records:
+        writer.writerow([
+            r.bank_name,
+            r.account_number,
+            r.currency,
+            f"{r.balance:.2f}".replace('.', ','),
+            r.last_updated.strftime("%Y-%m-%d %H:%M:%S")
+        ])
+        
+    output.seek(0)
+    
+    # Add UTF-8 BOM for Excel
+    csv_bytes = output.getvalue().encode('utf-8-sig')
+    
+    return StreamingResponse(
+        iter([csv_bytes]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=report.csv"}
+    )

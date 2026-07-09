@@ -15,6 +15,16 @@ export function Sidebar({
   const { data: session } = useSession();
   const pathname = usePathname();
 
+  const handleRefreshClick = () => {
+    fetch("/api/log", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "refresh_data", page_url: pathname, details: "User explicitly clicked Refresh" })
+    }).catch(err => console.error("Failed to log refresh", err));
+    
+    if (onRefresh) onRefresh();
+  };
+
   return (
     <aside className="sidebar">
       <div className="sidebar-header" style={{ padding: '24px 24px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -54,7 +64,7 @@ export function Sidebar({
       {onRefresh && (
         <div style={{ padding: '24px', borderTop: '1px solid var(--border-color)', marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <button 
-            onClick={onRefresh} 
+            onClick={handleRefreshClick} 
             disabled={refreshing}
             style={{ 
               width: '100%', 

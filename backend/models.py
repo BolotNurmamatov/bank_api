@@ -51,6 +51,8 @@ class ActivityLog(Base):
     id = Column(String, primary_key=True)  # UUID string
     user_email = Column(String)
     action = Column(String)
+    page_url = Column(String, nullable=True)
+    details = Column(String, nullable=True)
     timestamp = Column(DateTime, default=datetime.now)
 
     __table_args__ = (
