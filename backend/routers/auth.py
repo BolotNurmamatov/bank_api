@@ -10,7 +10,7 @@ router = APIRouter(prefix="/api/v1/auth", tags=["Auth"])
 
 # For internal service-to-service communication
 import os
-INTERNAL_API_SECRET = os.getenv("INTERNAL_API_SECRET", "super-secret-key-change-me-in-prod")
+INTERNAL_API_SECRET = os.getenv("INTERNAL_API_SECRET")
 
 def verify_internal_secret(x_api_secret: str = Header(...)):
     if x_api_secret != INTERNAL_API_SECRET:
