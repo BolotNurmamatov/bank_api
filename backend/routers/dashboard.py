@@ -199,7 +199,7 @@ def download_data(
             r.account_number,
             r.currency,
             float(r.balance),
-            r.latest_update.strftime("%Y-%m-%d") if hasattr(r.latest_update, "strftime") else str(r.latest_update).split(" ")[0]
+            r.latest_update.strftime("%d.%m.%Y") if hasattr(r.latest_update, "strftime") else ".".join(str(r.latest_update).split(" ")[0].split("-")[::-1])
         ])
         
     output = io.BytesIO()
