@@ -26,7 +26,6 @@ interface HistoryResponse {
 const BANK_COLORS: Record<string, string> = {
   "Элдик Банк": "#0284c7",  // Blue
   "Оптима Банк": "#dc2626", // Red
-  "Мбанк": "#16a34a",       // Green
   "Айыл Банк": "#d97706",   // Orange
 };
 
@@ -168,7 +167,7 @@ export default function ReportsPage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `report_${new Date().toISOString().split('T')[0]}.xlsx`;
+      a.download = `Отчет_остатки_${new Date().toISOString().split('T')[0]}.xlsx`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);

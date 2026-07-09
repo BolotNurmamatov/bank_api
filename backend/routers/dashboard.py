@@ -18,7 +18,7 @@ router = APIRouter(prefix="/api/v1/dashboard", tags=["Dashboard"])
 
 @router.get("", response_model=DashboardResponse, dependencies=[Depends(verify_internal_secret)])
 def get_dashboard_data(user_email: str, db: Session = Depends(get_db)):
-    all_records = db.query(Bank).order_by(Bank.last_updated.desc()).all()
+    all_records = db.query(Bank).filter(Bank.name != 'МБанк').order_by(Bank.last_updated.desc()).all()
     
     # Get latest record per bank
     latest_banks = {}
@@ -30,7 +30,7 @@ def get_dashboard_data(user_email: str, db: Session = Depends(get_db)):
     banks.sort(key=lambda b: b.name)
     
     # Get latest accounts per bank_name + account_number
-    all_accounts_records = db.query(BankAccount).order_by(BankAccount.last_updated.desc()).all()
+    all_accounts_records = db.query(BankAccount).filter(BankAccount.bank_name != 'МБанк').order_by(BankAccount.last_updated.desc()).all()
     latest_accounts = {}
     for acc in all_accounts_records:
         key = f"{acc.bank_name}_{acc.account_number}"
@@ -99,7 +99,8 @@ def get_dashboard_history(
         Bank.name,
         func.argMax(Bank.balance, Bank.last_updated).label('balance')
     ).filter(
-        Bank.last_updated >= start_time
+        Bank.last_updated >= start_time,
+        Bank.name != 'МБанк'
     ).group_by(
         text("time_bucket"),
         Bank.name
@@ -156,7 +157,7 @@ def download_data(
     sql = """
         SELECT bank_name, account_number, currency, argMax(balance, last_updated) as balance, max(last_updated) as latest_update
         FROM bank_accounts
-        WHERE 1=1
+        WHERE bank_name != 'МБанк'
     """
     params = {}
     
