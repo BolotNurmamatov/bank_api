@@ -37,8 +37,8 @@ export async function GET(req: Request) {
     
     const blob = await res.blob();
     const headers = new Headers();
-    headers.set("Content-Type", "text/csv; charset=utf-8-sig");
-    headers.set("Content-Disposition", 'attachment; filename="report.csv"');
+    headers.set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    headers.set("Content-Disposition", res.headers.get("Content-Disposition") || 'attachment; filename="report.xlsx"');
     
     return new NextResponse(blob, { headers });
   } catch (e) {

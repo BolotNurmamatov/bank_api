@@ -150,6 +150,17 @@ export default function ReportsPage() {
       if (dateFrom) queryParams.append('date_from', dateFrom);
       if (dateTo) queryParams.append('date_to', dateTo);
 
+      // Log the action
+      fetch("/api/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          action: "download_data", 
+          page_url: "/reports", 
+          details: `User downloaded report for Bank: ${selectedBank || 'All'}, Account: ${selectedAccount || 'All'}, Date: ${dateFrom} to ${dateTo}` 
+        })
+      }).catch(err => console.error("Failed to log download", err));
+
       const res = await fetch(`/api/download?${queryParams.toString()}`);
       if (!res.ok) throw new Error("Download failed");
 
@@ -157,7 +168,7 @@ export default function ReportsPage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `report_${new Date().toISOString().split('T')[0]}.csv`;
+      a.download = `report_${new Date().toISOString().split('T')[0]}.xlsx`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);

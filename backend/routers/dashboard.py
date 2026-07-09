@@ -7,6 +7,8 @@ from schemas import DashboardResponse, DashboardStats, BankResponse, BankAccount
 from fastapi.responses import StreamingResponse
 import io
 import csv
+import openpyxl
+import urllib.parse
 from services.bank_api import update_banks_in_db
 from routers.auth import verify_internal_secret
 import uuid
@@ -151,49 +153,62 @@ def download_data(
     user_email: str = Header(None),
     db: Session = Depends(get_db)
 ):
-    query = db.query(BankAccount)
+    sql = """
+        SELECT bank_name, account_number, currency, argMax(balance, last_updated) as balance, max(last_updated) as last_updated
+        FROM bank_accounts
+        WHERE 1=1
+    """
+    params = {}
     
     if bank:
-        query = query.filter(BankAccount.bank_name == bank)
+        sql += " AND bank_name = :bank"
+        params['bank'] = bank
     if account:
-        query = query.filter(BankAccount.account_number == account)
+        sql += " AND account_number = :account"
+        params['account'] = account
         
     if date_from:
         try:
             df = datetime.strptime(date_from, "%Y-%m-%d")
-            query = query.filter(BankAccount.last_updated >= df)
+            sql += " AND last_updated >= :date_from"
+            params['date_from'] = df
         except ValueError:
             pass
     if date_to:
         try:
             dt = datetime.strptime(date_to, "%Y-%m-%d")
             dt = dt + timedelta(days=1)
-            query = query.filter(BankAccount.last_updated < dt)
+            sql += " AND last_updated < :date_to"
+            params['date_to'] = dt
         except ValueError:
             pass
 
-    records = query.order_by(BankAccount.last_updated.desc()).all()
+    sql += " GROUP BY bank_name, account_number, currency, toDate(last_updated) ORDER BY last_updated DESC"
     
-    output = io.StringIO()
-    writer = csv.writer(output, delimiter=';')
-    writer.writerow(["Банк", "Счет", "Валюта", "Остаток", "Дата и время"])
+    records = db.execute(text(sql), params).fetchall()
+    
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Остатки"
+    ws.append(["Банк", "Счет", "Валюта", "Остаток", "Дата и время"])
     
     for r in records:
-        writer.writerow([
+        ws.append([
             r.bank_name,
             r.account_number,
             r.currency,
-            f"{r.balance:.2f}".replace('.', ','),
-            r.last_updated.strftime("%Y-%m-%d %H:%M:%S")
+            float(r.balance),
+            r.last_updated.strftime("%Y-%m-%d %H:%M:%S") if isinstance(r.last_updated, datetime) else str(r.last_updated)
         ])
         
+    output = io.BytesIO()
+    wb.save(output)
     output.seek(0)
     
-    # Add UTF-8 BOM for Excel
-    csv_bytes = output.getvalue().encode('utf-8-sig')
+    filename = urllib.parse.quote("Отчет_остатки.xlsx")
     
     return StreamingResponse(
-        iter([csv_bytes]),
-        media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=report.csv"}
+        iter([output.getvalue()]),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename*=utf-8''{filename}"}
     )
