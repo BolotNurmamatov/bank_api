@@ -184,14 +184,14 @@ def download_data(
         except ValueError:
             pass
 
-    sql += " GROUP BY bank_name, account_number, currency, toDate(last_updated) ORDER BY latest_update DESC"
+    sql += " GROUP BY bank_name, account_number, currency, toDate(last_updated) ORDER BY bank_name ASC, latest_update DESC"
     
     records = db.execute(text(sql), params).fetchall()
     
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Остатки"
-    ws.append(["Банк", "Счет", "Валюта", "Остаток", "Дата и время"])
+    ws.append(["Банк", "Счет", "Валюта", "Остаток", "Дата"])
     
     for r in records:
         ws.append([
@@ -199,7 +199,7 @@ def download_data(
             r.account_number,
             r.currency,
             float(r.balance),
-            r.latest_update.strftime("%Y-%m-%d %H:%M:%S") if isinstance(r.latest_update, datetime) else str(r.latest_update)
+            r.latest_update.strftime("%Y-%m-%d") if hasattr(r.latest_update, "strftime") else str(r.latest_update).split(" ")[0]
         ])
         
     output = io.BytesIO()
