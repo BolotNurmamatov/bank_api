@@ -6,13 +6,15 @@ from routers import dashboard, auth
 from scheduler import start_scheduler
 from services.bank_api import update_banks_in_db
 
-# Create DB tables if they don't exist
-Base.metadata.create_all(bind=engine)
-
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initial fetch and populate DB on startup
-    update_banks_in_db()
+    # Try to create DB tables and run initial fetch
+    try:
+        Base.metadata.create_all(bind=engine)
+        update_banks_in_db()
+    except Exception as e:
+        print(f"Warning: Failed to initialize DB on startup. It might be offline. Error: {e}")
+        
     # Start background scheduler
     start_scheduler()
     yield
